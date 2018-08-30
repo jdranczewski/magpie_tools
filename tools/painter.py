@@ -1,14 +1,28 @@
 from fringe_tracing import *
 from skimage.filters import gaussian
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import (
+    FigureCanvasTkAgg, NavigationToolbar2TkAgg)
 import numpy as np
+import tkinter as Tk
+import tkinter.ttk as ttk
+
+root = Tk.Tk()
 
 fig, axes = plt.subplots(2, 2)
 plt.tight_layout()
 
+canvas = FigureCanvasTkAgg(fig, master=root)  # A tk.DrawingArea.
+canvas.draw()
+canvas.get_tk_widget().pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
+
+toolbar = NavigationToolbar2TkAgg(canvas, root)
+toolbar.update()
+canvas._tkcanvas.pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
+
 print("Imported")
 
-interferogram_path = "C:\\Users\\User\\Documents\\pendrive\\Sample interferograms\\test2.png"
+interferogram_path = "C:\\Users\\User\\Documents\\pendrive\\Sample interferograms\\s0920_17 355 nm end on interferometry (1).JPG"
 interferogram = imread(interferogram_path)
 interferogram = rgb2gray(interferogram)
 
@@ -41,9 +55,7 @@ def onclick(event):
         x, y = int(-x+centre[1]), int(-y+centre[0])
         fft_filter[y-20:y+20, x-20:x+20] = 1
         fft_filter=gaussian(fft_filter, 4)
-        ifftim = abs((np.fft.ifft2(fftim*fft_filter)))
         axes[0, 1].imshow(abs(fftim) + 100000*fft_filter/2, clim=[0, 100000])
-        axes[1, 0].imshow(ifftim, cmap='gray', clim=[0, 0.5])
         fig.canvas.draw()
 
 def onpress(event):
@@ -59,5 +71,15 @@ def onrelease(event):
 fig.canvas.mpl_connect('button_press_event', onclick)
 fig.canvas.mpl_connect('key_press_event', onpress)
 fig.canvas.mpl_connect('key_release_event', onrelease)
+canvas.mpl_connect('button_press_event',
+                        lambda event: fig.canvas._tkcanvas.focus_set())
 
-plt.show()
+def refourier():
+    ifftim = abs((np.fft.ifft2(fftim*fft_filter)))
+    axes[1, 0].imshow(ifftim, cmap='gray', clim=[0, 0.5])
+    fig.canvas.draw()
+
+b = ttk.Button(root, text="Refourier", command=refourier)
+b.pack(side=Tk.BOTTOM)
+
+root.mainloop()
