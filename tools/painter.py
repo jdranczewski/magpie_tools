@@ -81,7 +81,21 @@ def refourier():
     axes[1, 0].imshow(ifftim, cmap='gray', clim=[0, 0.5])
     fig.canvas.draw()
 
+def clean():
+    global fft_filter
+    fft_filter = np.zeros_like(fft_filter)
+    axes[0, 1].imshow(abs(fftim) + 1000*fft_filter/2, clim=[0, 1000])
+    fig.canvas.draw()
+
+def threshold():
+    global fft_filter
+    fft_filter = fftim != 0
+
 b = ttk.Button(root, text="Refourier", command=refourier)
+b.pack(side=Tk.BOTTOM)
+b = ttk.Button(root, text="Clean", command=clean)
+b.pack(side=Tk.BOTTOM)
+b = ttk.Button(root, text="Threshold", command=threshold)
 b.pack(side=Tk.BOTTOM)
 
 root.mainloop()
